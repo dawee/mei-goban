@@ -1,6 +1,7 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Goban=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 module.exports = require('./lib/goban');
 },{"./lib/goban":2}],2:[function(require,module,exports){
+var Stone = require('./stone');
 
 var triggers = {};
 
@@ -23,6 +24,7 @@ triggers.size = function (val) {
 var Goban = module.exports = function (opts) {
   opts = opts || {};
   this.conf = {};
+  this.stones = {};
 
   this.el = document.createElement('canvas');
   this.ctx = this.el.getContext('2d');
@@ -31,6 +33,7 @@ var Goban = module.exports = function (opts) {
   this.set('height', opts.height || 500);
   this.set('size', opts.size || 19);
   this.set('border', opts.border || 10);
+  this.set('boardColor', opts.boardColor || '#333');
 
   this.draw();
 };
@@ -42,6 +45,24 @@ Goban.prototype.set = function (key, val) {
   } else {
     this.conf[key] = val;
   }
+};
+
+Goban.prototype.putStone = function (row, col, color) {
+  var stone = new Stone({
+    conf: this.conf,
+    ctx: this.ctx,
+    row: row,
+    col: col,
+    color: color
+  });
+
+  this.stones[row + ':' + col] = stone;
+  stone.draw();
+};
+
+Goban.prototype.removeStone = function (row, col) {
+  this.stones[row + ':' + col] = null;
+  this.draw();
 };
 
 Goban.prototype.drawHorizontalLine = function (index) {
@@ -75,9 +96,9 @@ Goban.prototype.drawHoshiAt = function (row, col) {
   this.ctx.beginPath();
   this.ctx.arc(x, y, 3, 0, Math.PI * 2, true); 
   this.ctx.closePath();
+  this.ctx.fillStyle = this.conf.boardColor;
   this.ctx.fill();
 };
-
 
 Goban.prototype.drawHoshis = function () {
   var gap = (this.conf.size === 9 ? 2 : 3);
@@ -109,10 +130,42 @@ Goban.prototype.drawlines = function () {
   }
 };
 
+Goban.prototype.drawStones = function () {
+  var stones = this.stones;
+
+  Object.keys(stones).forEach(function (pos) {
+    var stone = stones[pos];
+    if (stone !== null) stone.draw();
+  });
+};
+
 Goban.prototype.draw = function () {
   this.ctx.clearRect(0, 0, this.conf.width, this.conf.height);
   this.drawlines();
   this.drawHoshis();
+  this.drawStones();
+};
+
+},{"./stone":3}],3:[function(require,module,exports){
+var Stone = module.exports = function (opts) {
+  this.ctx = opts.ctx;
+  this.conf = opts.conf;
+  this.row = opts.row;
+  this.col = opts.col;
+  this.color = opts.color;
+};
+
+Stone.prototype.draw = function () {
+  var boardHeight = this.conf.height - 2 * this.conf.border;
+  var boardWidth = this.conf.width - 2 * this.conf.border;
+  var x = this.conf.border + parseInt(boardWidth * this.col / (this.conf.size - 1), 10);
+  var y = this.conf.border + parseInt(boardHeight * this.row / (this.conf.size - 1), 10);
+
+  this.ctx.beginPath();
+  this.ctx.arc(x, y, 10, 0, Math.PI * 2, true); 
+  this.ctx.closePath();
+  this.ctx.fillStyle = this.color;
+  this.ctx.fill();
 };
 
 },{}]},{},[1])(1)
