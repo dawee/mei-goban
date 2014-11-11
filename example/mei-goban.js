@@ -69,12 +69,11 @@ Goban.prototype.drawVerticalLine = function (index) {
 Goban.prototype.drawHoshiAt = function (row, col) {
   var boardHeight = this.conf.height - 2 * this.conf.border;
   var boardWidth = this.conf.width - 2 * this.conf.border;
-  var hoshiSize = parseInt(boardWidth * 0.1 / (this.conf.size - 1), 10);
   var x = this.conf.border + parseInt(boardWidth * col / (this.conf.size - 1), 10);
   var y = this.conf.border + parseInt(boardHeight * row / (this.conf.size - 1), 10);
 
   this.ctx.beginPath();
-  this.ctx.arc(x, y, hoshiSize, 0, Math.PI * 2, true); 
+  this.ctx.arc(x, y, 3, 0, Math.PI * 2, true); 
   this.ctx.closePath();
   this.ctx.fill();
 };
@@ -82,13 +81,23 @@ Goban.prototype.drawHoshiAt = function (row, col) {
 
 Goban.prototype.drawHoshis = function () {
   var gap = (this.conf.size === 9 ? 2 : 3);
+  var backGap = this.conf.size - gap - 1;
+  var middle = parseInt(Math.floor(this.conf.size / 2.0), 10);
 
   // Corner hoshis
 
   this.drawHoshiAt(gap, gap);
-  this.drawHoshiAt(gap, this.conf.size - gap - 1);
-  this.drawHoshiAt(this.conf.size - gap - 1, this.conf.size - gap - 1);
-  this.drawHoshiAt(this.conf.size - gap - 1, gap);
+  this.drawHoshiAt(gap, backGap);
+  this.drawHoshiAt(backGap, backGap);
+  this.drawHoshiAt(backGap, gap);
+
+  if (this.conf.size !== 9) {
+    this.drawHoshiAt(middle, gap);
+    this.drawHoshiAt(gap, middle);
+    this.drawHoshiAt(middle, backGap);
+    this.drawHoshiAt(backGap, middle);
+    this.drawHoshiAt(middle, middle);
+  }
 };
 
 Goban.prototype.drawlines = function () {
