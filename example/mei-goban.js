@@ -34,6 +34,8 @@ var Goban = module.exports = function (opts) {
   this.set('size', opts.size || 19);
   this.set('border', opts.border || 10);
   this.set('boardColor', opts.boardColor || '#333');
+  this.set('blackStoneColor', opts.blackStoneColor || '#27160f');
+  this.set('whiteStoneColor', opts.whiteStoneColor || '#f9f2ef');
 
   this.draw();
 };
@@ -73,6 +75,7 @@ Goban.prototype.drawHorizontalLine = function (index) {
   this.ctx.beginPath();
   this.ctx.moveTo(this.conf.border, y);
   this.ctx.lineTo(boardWidth + this.conf.border, y);
+  this.ctx.strokeStyle = this.conf.boardColor;
   this.ctx.stroke();
 };
 
@@ -84,6 +87,7 @@ Goban.prototype.drawVerticalLine = function (index) {
   this.ctx.beginPath();
   this.ctx.moveTo(x, this.conf.border);
   this.ctx.lineTo(x, boardHeight + this.conf.border);
+  this.ctx.strokeStyle = this.conf.boardColor;
   this.ctx.stroke();
 };
 
@@ -164,7 +168,7 @@ Stone.prototype.draw = function () {
   this.ctx.beginPath();
   this.ctx.arc(x, y, 10, 0, Math.PI * 2, true); 
   this.ctx.closePath();
-  this.ctx.fillStyle = this.color;
+  this.ctx.fillStyle = this.conf[this.color + 'StoneColor'];
   this.ctx.fill();
 };
 
