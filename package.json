@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/dawicorti/mei-goban/issues"
   },
-  "homepage": "https://github.com/dawicorti/mei-goban"
+  "homepage": "https://github.com/dawicorti/mei-goban",
+  "devDependencies": {
+    "browserify": "^6.3.2"
+  }
 }
