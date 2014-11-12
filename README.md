@@ -1,3 +1,3 @@
 # mei-goban
 
-Goban for meishengo in HTML5 Canvas
+Goban for [meishengo](https://github.com/dawicorti/meishengo) in HTML5 Canvas
