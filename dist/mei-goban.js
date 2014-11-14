@@ -1,7 +1,9 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Goban=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 module.exports = require('./lib/goban');
 },{"./lib/goban":2}],2:[function(require,module,exports){
+var MicroEvent = require('microevent');
 var Stone = require('./stone');
+
 
 var triggers = {};
 
@@ -26,6 +28,9 @@ var Goban = module.exports = function (opts) {
   this.conf = {};
   this.stones = {};
 
+  this.on = this.bind;
+  this.off = this.unbind;
+
   this.el = document.createElement('canvas');
   this.ctx = this.el.getContext('2d');
 
@@ -38,7 +43,41 @@ var Goban = module.exports = function (opts) {
   this.set('blackStoneLight', opts.blackStoneLight || 0.1);
   this.set('whiteStoneLight', opts.whiteStoneLight || 0.4);
 
+  this.forwardEvent('mousedown');
+  this.forwardEvent('mouseup');
+  this.forwardEvent('click');
+
   this.draw();
+};
+
+MicroEvent.mixin(Goban);
+
+Goban.prototype.forwardEvent = function (name) {
+  var that = this;
+
+  this.el.addEventListener(name, function (evt) {
+    var x;
+    var y;
+    var intersection = {};
+
+    if (evt.pageX || evt.pageY) { 
+      x = evt.pageX;
+      y = evt.pageY;
+    }
+    else { 
+      x = evt.clientX + document.body.scrollLeft + document.documentElement.scrollLeft; 
+      y = evt.clientY + document.body.scrollTop + document.documentElement.scrollTop; 
+    } 
+
+    x -= that.el.offsetLeft;
+    y -= that.el.offsetTop;
+
+    that.trigger(name, {
+      row: parseInt(Math.round((y - that.conf.border) / that.conf.intersectionWidth), 10),
+      col: parseInt(Math.round((x - that.conf.border) / that.conf.intersectionWidth), 10)
+    })
+  });
+
 };
 
 Goban.prototype.set = function (key, val) {
@@ -60,7 +99,7 @@ Goban.prototype.putStone = function (row, col, color) {
   });
 
   this.stones[row + ':' + col] = stone;
-  stone.draw();
+  this.draw();
 };
 
 Goban.prototype.removeStone = function (row, col) {
@@ -154,7 +193,7 @@ Goban.prototype.draw = function () {
   this.drawStones();
 };
 
-},{"./stone":3}],3:[function(require,module,exports){
+},{"./stone":3,"microevent":4}],3:[function(require,module,exports){
 var Stone = module.exports = function (opts) {
   this.ctx = opts.ctx;
   this.conf = opts.conf;
@@ -216,6 +255,58 @@ Stone.prototype.draw = function () {
   this.drawShadow();
   this.drawLight();
 };
+
+},{}],4:[function(require,module,exports){
+/**
+ * MicroEvent - to make any js object an event emitter (server or browser)
+ * 
+ * - pure javascript - server compatible, browser compatible
+ * - dont rely on the browser doms
+ * - super simple - you get it immediatly, no mistery, no magic involved
+ *
+ * - create a MicroEventDebug with goodies to debug
+ *   - make it safer to use
+*/
+
+var MicroEvent	= function(){}
+MicroEvent.prototype	= {
+	bind	: function(event, fct){
+		this._events = this._events || {};
+		this._events[event] = this._events[event]	|| [];
+		this._events[event].push(fct);
+	},
+	unbind	: function(event, fct){
+		this._events = this._events || {};
+		if( event in this._events === false  )	return;
+		this._events[event].splice(this._events[event].indexOf(fct), 1);
+	},
+	trigger	: function(event /* , args... */){
+		this._events = this._events || {};
+		if( event in this._events === false  )	return;
+		for(var i = 0; i < this._events[event].length; i++){
+			this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1))
+		}
+	}
+};
+
+/**
+ * mixin will delegate all MicroEvent.js function in the destination object
+ *
+ * - require('MicroEvent').mixin(Foobar) will make Foobar able to use MicroEvent
+ *
+ * @param {Object} the object which will support MicroEvent
+*/
+MicroEvent.mixin	= function(destObject){
+	var props	= ['bind', 'unbind', 'trigger'];
+	for(var i = 0; i < props.length; i ++){
+		destObject.prototype[props[i]]	= MicroEvent.prototype[props[i]];
+	}
+}
+
+// export in common js
+if( typeof module !== "undefined" && ('exports' in module)){
+	module.exports	= MicroEvent
+}
 
 },{}]},{},[1])(1)
 });
