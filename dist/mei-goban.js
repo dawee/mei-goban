@@ -32,10 +32,11 @@ var Goban = module.exports = function (opts) {
   this.set('width', opts.width || 500);
   this.set('height', opts.height || 500);
   this.set('size', opts.size || 19);
-  this.set('border', opts.border || 10);
-  this.set('boardColor', opts.boardColor || '#333');
+  this.set('boardColor', opts.boardColor || '#63605e');
   this.set('blackStoneColor', opts.blackStoneColor || '#27160f');
   this.set('whiteStoneColor', opts.whiteStoneColor || '#f9f2ef');
+  this.set('blackStoneLight', opts.blackStoneLight || 0.1);
+  this.set('whiteStoneLight', opts.whiteStoneLight || 0.4);
 
   this.draw();
 };
@@ -67,35 +68,37 @@ Goban.prototype.removeStone = function (row, col) {
   this.draw();
 };
 
+Goban.prototype.calcBoardValues = function () {
+  this.conf.idealBorder = parseInt(this.conf.width / ((this.conf.size + 1) * 2), 10);
+  this.conf.idealBoardWidth = this.conf.width - 2 * this.conf.idealBorder;
+  this.conf.intersectionWidth = parseInt(this.conf.idealBoardWidth / (this.conf.size - 1), 10);
+  this.conf.boardWidth = this.conf.intersectionWidth * (this.conf.size - 1);
+  this.conf.border = parseInt((this.conf.width - this.conf.boardWidth) / 2, 10);
+};
+
 Goban.prototype.drawHorizontalLine = function (index) {
-  var boardHeight = this.conf.height - 2 * this.conf.border;
-  var boardWidth = this.conf.width - 2 * this.conf.border;
-  var y = this.conf.border + parseInt(boardHeight * index / (this.conf.size - 1), 10);
+  var y = this.conf.border + this.conf.intersectionWidth * index;
 
   this.ctx.beginPath();
   this.ctx.moveTo(this.conf.border, y);
-  this.ctx.lineTo(boardWidth + this.conf.border, y);
+  this.ctx.lineTo(this.conf.boardWidth + this.conf.border, y);
   this.ctx.strokeStyle = this.conf.boardColor;
   this.ctx.stroke();
 };
 
 Goban.prototype.drawVerticalLine = function (index) {
-  var boardHeight = this.conf.height - 2 * this.conf.border;
-  var boardWidth = this.conf.width - 2 * this.conf.border;
-  var x = this.conf.border + parseInt(boardWidth * index / (this.conf.size - 1), 10);
+  var x = this.conf.border + this.conf.intersectionWidth * index;
 
   this.ctx.beginPath();
   this.ctx.moveTo(x, this.conf.border);
-  this.ctx.lineTo(x, boardHeight + this.conf.border);
+  this.ctx.lineTo(x, this.conf.boardWidth + this.conf.border);
   this.ctx.strokeStyle = this.conf.boardColor;
   this.ctx.stroke();
 };
 
 Goban.prototype.drawHoshiAt = function (row, col) {
-  var boardHeight = this.conf.height - 2 * this.conf.border;
-  var boardWidth = this.conf.width - 2 * this.conf.border;
-  var x = this.conf.border + parseInt(boardWidth * col / (this.conf.size - 1), 10);
-  var y = this.conf.border + parseInt(boardHeight * row / (this.conf.size - 1), 10);
+  var x = this.conf.border + this.conf.intersectionWidth * col;
+  var y = this.conf.border + this.conf.intersectionWidth * row;
 
   this.ctx.beginPath();
   this.ctx.arc(x, y, 3, 0, Math.PI * 2, true); 
@@ -144,6 +147,7 @@ Goban.prototype.drawStones = function () {
 };
 
 Goban.prototype.draw = function () {
+  this.calcBoardValues();
   this.ctx.clearRect(0, 0, this.conf.width, this.conf.height);
   this.drawlines();
   this.drawHoshis();
@@ -159,17 +163,58 @@ var Stone = module.exports = function (opts) {
   this.color = opts.color;
 };
 
-Stone.prototype.draw = function () {
-  var boardHeight = this.conf.height - 2 * this.conf.border;
-  var boardWidth = this.conf.width - 2 * this.conf.border;
-  var x = this.conf.border + parseInt(boardWidth * this.col / (this.conf.size - 1), 10);
-  var y = this.conf.border + parseInt(boardHeight * this.row / (this.conf.size - 1), 10);
-
+Stone.prototype.drawBase = function () {
+  this.ctx.save();
   this.ctx.beginPath();
-  this.ctx.arc(x, y, 10, 0, Math.PI * 2, true); 
+  this.ctx.shadowColor   = '#000';
+  this.ctx.shadowOffsetX = 2;
+  this.ctx.shadowOffsetY = 2;
+  this.ctx.shadowBlur    = 2;
+  this.ctx.arc(this.x, this.y, this.conf.stoneRay, 0, Math.PI * 2, true); 
   this.ctx.closePath();
   this.ctx.fillStyle = this.conf[this.color + 'StoneColor'];
   this.ctx.fill();
+  this.ctx.restore();  
+};
+
+Stone.prototype.drawShadow = function () {
+  this.ctx.save();
+  this.ctx.fillStyle = '#000';
+  this.ctx.globalAlpha = 0.3;
+  this.ctx.beginPath();
+  this.ctx.arc(this.x, this.y, this.conf.stoneRay, 0, Math.PI * 2, true); 
+  this.ctx.closePath();
+  this.ctx.fill();
+  this.ctx.restore();
+};
+
+Stone.prototype.drawLight = function () {
+  var lightX = parseInt(this.x - 0.2 * this.conf.intersectionWidth, 10);
+  var lightY = parseInt(this.y - 0.2 * this.conf.intersectionWidth, 10);
+
+  this.ctx.save();
+  this.ctx.fillStyle = '#fff';
+  this.ctx.globalAlpha = this.conf[this.color + 'StoneLight'];
+  this.ctx.beginPath();
+
+  this.ctx.arc(this.x, this.y, this.conf.stoneRay, Math.PI - 1.072, 2 * Math.PI - 0.499);
+  this.ctx.arc(lightX, lightY, this.conf.stoneRay, 2 * Math.PI - 0.499, Math.PI - 1.072, false);
+
+  this.ctx.closePath();
+  this.ctx.fill();
+  this.ctx.restore();
+};
+
+
+Stone.prototype.draw = function () {
+  this.conf.stoneRay = parseInt(this.conf.intersectionWidth * 0.98 / 2, 10);
+
+  this.x = this.conf.border + this.conf.intersectionWidth * this.col;
+  this.y = this.conf.border + this.conf.intersectionWidth * this.row;
+
+  this.drawBase();
+  this.drawShadow();
+  this.drawLight();
 };
 
 },{}]},{},[1])(1)
