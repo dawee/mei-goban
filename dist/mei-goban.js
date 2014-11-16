@@ -250,13 +250,29 @@ Stone.prototype.drawLight = function () {
   this.ctx.beginPath();
 
   this.ctx.arc(this.x, this.y, this.conf.stoneRay, Math.PI - 1.072, 2 * Math.PI - 0.499);
-  this.ctx.arc(lightX, lightY, this.conf.stoneRay, 2 * Math.PI - 0.499, Math.PI - 1.072, false);
+  this.ctx.arc(lightX, lightY, this.conf.stoneRay, 2 * Math.PI - 0.499, Math.PI - 1.072);
 
   this.ctx.closePath();
   this.ctx.fill();
   this.ctx.restore();
 };
 
+Stone.prototype.drawLightLine = function () {
+  var lightX = parseInt(this.x - 0.2 * this.conf.intersectionWidth, 10);
+  var lightY = parseInt(this.y - 0.2 * this.conf.intersectionWidth, 10);
+
+  this.ctx.save();
+  this.ctx.fillStyle = '#fff';
+  this.ctx.globalAlpha = this.conf[this.color + 'StoneLight'];
+  this.ctx.beginPath();
+
+  this.ctx.arc(this.x, this.y, this.conf.stoneRay, Math.PI - 1.072, 2 * Math.PI - 0.499);
+  this.ctx.arc(this.x + 2, this.y + 2, this.conf.stoneRay - 1, 2 * Math.PI - 0.499, 3 * Math.PI - 1.072, true);
+
+  this.ctx.closePath();
+  this.ctx.fill();
+  this.ctx.restore();
+};
 
 Stone.prototype.draw = function () {
   this.conf.stoneRay = parseInt(this.conf.intersectionWidth * 0.98 / 2, 10);
@@ -267,6 +283,7 @@ Stone.prototype.draw = function () {
   this.drawBase();
   this.drawShadow();
   this.drawLight();
+  this.drawLightLine();
 };
 
 },{}],4:[function(require,module,exports){
