@@ -120,6 +120,13 @@ Goban.prototype.removeStone = function (row, col) {
   this.draw();
 };
 
+Goban.prototype.setStoneProperty = function (row, col, key, val) {
+  if (!!this.stones[row + ':' + col]) {
+    this.stones[row + ':' + col].set(key, val);
+    this.draw();
+  }
+};
+
 Goban.prototype.calcBoardValues = function () {
   this.conf.idealBorder = parseInt(this.conf.width / ((this.conf.size + 1) * 2), 10);
   this.conf.idealBoardWidth = this.conf.width - 2 * this.conf.idealBorder;
@@ -213,11 +220,17 @@ var Stone = module.exports = function (opts) {
   this.row = opts.row;
   this.col = opts.col;
   this.color = opts.color;
+  this.opacity = 1;
+};
+
+Stone.prototype.set = function (key, val) {
+  this[key] = val;
 };
 
 Stone.prototype.drawBase = function () {
   this.ctx.save();
   this.ctx.beginPath();
+  this.ctx.globalAlpha = this.opacity;
   this.ctx.shadowColor   = '#000';
   this.ctx.shadowOffsetX = 2;
   this.ctx.shadowOffsetY = 2;
@@ -232,7 +245,7 @@ Stone.prototype.drawBase = function () {
 Stone.prototype.drawShadow = function () {
   this.ctx.save();
   this.ctx.fillStyle = '#000';
-  this.ctx.globalAlpha = 0.3;
+  this.ctx.globalAlpha = 0.3 * this.opacity;
   this.ctx.beginPath();
   this.ctx.arc(this.x, this.y, this.conf.stoneRay, 0, Math.PI * 2, true); 
   this.ctx.closePath();
@@ -246,7 +259,7 @@ Stone.prototype.drawLight = function () {
 
   this.ctx.save();
   this.ctx.fillStyle = '#fff';
-  this.ctx.globalAlpha = this.conf[this.color + 'StoneLight'];
+  this.ctx.globalAlpha = this.conf[this.color + 'StoneLight'] * this.opacity;
   this.ctx.beginPath();
 
   this.ctx.arc(this.x, this.y, this.conf.stoneRay, Math.PI - 1.072, 2 * Math.PI - 0.499);
@@ -263,7 +276,7 @@ Stone.prototype.drawLightLine = function () {
 
   this.ctx.save();
   this.ctx.fillStyle = '#fff';
-  this.ctx.globalAlpha = this.conf[this.color + 'StoneLight'];
+  this.ctx.globalAlpha = this.conf[this.color + 'StoneLight'] * this.opacity;
   this.ctx.beginPath();
 
   this.ctx.arc(this.x, this.y, this.conf.stoneRay, Math.PI - 1.072, 2 * Math.PI - 0.499);
