@@ -1,11 +1,26 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Goban=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 module.exports = require('./lib/goban');
 },{"./lib/goban":2}],2:[function(require,module,exports){
+'use strict';
+
+/*
+ * Module dependencies
+ */
+
 var MicroEvent = require('microevent');
 var Stone = require('./stone');
 
 
+/*
+ * Triggers
+ *
+ * Called after each 'set'
+ */
+
 var triggers = {};
+
+
+/* height trigger setup DOM element */
 
 triggers.height = triggers.width = function (val) {
   this.conf.width = val;
@@ -28,12 +43,18 @@ triggers.height = triggers.width = function (val) {
   this.draw();
 };
 
+/* size trigger check value in [9,13,19] and redraw */
+
 triggers.size = function (val) {
   if ([19, 13, 9].indexOf(val) < 0) return;
 
   this.conf.size = val;
   this.draw();
 };
+
+/*
+ * Goban constructor
+ */
 
 var Goban = module.exports = function (opts) {
   opts = opts || {};
@@ -65,7 +86,12 @@ var Goban = module.exports = function (opts) {
   this.draw();
 };
 
+/* Make goban an event emitter */
+
 MicroEvent.mixin(Goban);
+
+
+/* Forward all mouse events with row/col values */
 
 Goban.prototype.forwardEvent = function (name) {
   var that = this;
@@ -97,8 +123,9 @@ Goban.prototype.forwardEvent = function (name) {
       that.lastEvent = eventName;
     }
   });
-
 };
+
+/* Setup a property value */
 
 Goban.prototype.set = function (key, val) {
   if (this.conf[key] === val) return;
@@ -108,6 +135,8 @@ Goban.prototype.set = function (key, val) {
     this.conf[key] = val;
   }
 };
+
+/* Put a stone on goban and redraw */
 
 Goban.prototype.putStone = function (row, col, color) {
   var stone = new Stone({
@@ -122,10 +151,14 @@ Goban.prototype.putStone = function (row, col, color) {
   this.draw();
 };
 
+/* Remove a stone from goban and redraw */
+
 Goban.prototype.removeStone = function (row, col) {
   this.stones[row + ':' + col] = null;
   this.draw();
 };
+
+/* Setup a stone property */
 
 Goban.prototype.setStoneProperty = function (row, col, key, val) {
   if (!!this.stones[row + ':' + col]) {
@@ -134,6 +167,8 @@ Goban.prototype.setStoneProperty = function (row, col, key, val) {
   }
 };
 
+/* Pixel alignments and pre-calculations for intersections */
+
 Goban.prototype.calcBoardValues = function () {
   this.conf.idealBorder = parseInt(this.conf.width / ((this.conf.size + 1) * 2), 10);
   this.conf.idealBoardWidth = this.conf.width - 2 * this.conf.idealBorder;
@@ -141,6 +176,9 @@ Goban.prototype.calcBoardValues = function () {
   this.conf.boardWidth = this.conf.intersectionWidth * (this.conf.size - 1);
   this.conf.border = parseInt((this.conf.width - this.conf.boardWidth) / 2, 10);
 };
+
+
+/* Draw one horizontal line at index [0...18] */
 
 Goban.prototype.drawHorizontalLine = function (index) {
   var y = this.conf.border + this.conf.intersectionWidth * index;
@@ -152,6 +190,8 @@ Goban.prototype.drawHorizontalLine = function (index) {
   this.ctx.stroke();
 };
 
+/* Draw one vertical line at index [0...18] */
+
 Goban.prototype.drawVerticalLine = function (index) {
   var x = this.conf.border + this.conf.intersectionWidth * index;
 
@@ -161,6 +201,8 @@ Goban.prototype.drawVerticalLine = function (index) {
   this.ctx.strokeStyle = this.conf.boardColor;
   this.ctx.stroke();
 };
+
+/* Draw a hoshi (star) */
 
 Goban.prototype.drawHoshiAt = function (row, col) {
   var x = this.conf.border + this.conf.intersectionWidth * col;
@@ -172,6 +214,8 @@ Goban.prototype.drawHoshiAt = function (row, col) {
   this.ctx.fillStyle = this.conf.boardColor;
   this.ctx.fill();
 };
+
+/* Draw all hoshis (stars) */
 
 Goban.prototype.drawHoshis = function () {
   var gap = (this.conf.size === 9 ? 2 : 3);
@@ -194,6 +238,8 @@ Goban.prototype.drawHoshis = function () {
   }
 };
 
+/* Draw all lines */
+
 Goban.prototype.drawlines = function () {
   var index = 0;
 
@@ -202,6 +248,8 @@ Goban.prototype.drawlines = function () {
     this.drawVerticalLine(index);
   }
 };
+
+/* Draw all stones */
 
 Goban.prototype.drawStones = function () {
   var stones = this.stones;
@@ -212,6 +260,8 @@ Goban.prototype.drawStones = function () {
   });
 };
 
+/* Draw cycle : clear, draw lines, hoshis and stones */
+
 Goban.prototype.draw = function () {
   this.calcBoardValues();
   this.ctx.clearRect(0, 0, this.conf.width, this.conf.height);
@@ -221,6 +271,12 @@ Goban.prototype.draw = function () {
 };
 
 },{"./stone":3,"microevent":4}],3:[function(require,module,exports){
+'use strict';
+
+/*
+ * Stone constructor
+ */
+
 var Stone = module.exports = function (opts) {
   this.ctx = opts.ctx;
   this.conf = opts.conf;
@@ -230,9 +286,13 @@ var Stone = module.exports = function (opts) {
   this.opacity = 1;
 };
 
+/* Setup a property value */
+
 Stone.prototype.set = function (key, val) {
   this[key] = val;
 };
+
+/* Draw the first plain circle */
 
 Stone.prototype.drawBase = function () {
   this.ctx.save();
@@ -249,6 +309,8 @@ Stone.prototype.drawBase = function () {
   this.ctx.restore();  
 };
 
+/* Darken the first circle with another black one */
+
 Stone.prototype.drawShadow = function () {
   this.ctx.save();
   this.ctx.fillStyle = '#000';
@@ -259,6 +321,8 @@ Stone.prototype.drawShadow = function () {
   this.ctx.fill();
   this.ctx.restore();
 };
+
+/* Intersect plain circle with another light circle (-20%,-20%) */
 
 Stone.prototype.drawLight = function () {
   var lightX = parseInt(this.x - 0.2 * this.conf.intersectionWidth, 10);
@@ -277,6 +341,8 @@ Stone.prototype.drawLight = function () {
   this.ctx.restore();
 };
 
+/* Draw a light arc on top left */
+
 Stone.prototype.drawLightLine = function () {
   var lightX = parseInt(this.x - 0.2 * this.conf.intersectionWidth, 10);
   var lightY = parseInt(this.y - 0.2 * this.conf.intersectionWidth, 10);
@@ -293,6 +359,8 @@ Stone.prototype.drawLightLine = function () {
   this.ctx.fill();
   this.ctx.restore();
 };
+
+/* Draw cycle : base, shadow, light, light line */
 
 Stone.prototype.draw = function () {
   this.conf.stoneRay = parseInt(this.conf.intersectionWidth * 0.98 / 2, 10);
