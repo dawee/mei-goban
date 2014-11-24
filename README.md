@@ -2,6 +2,8 @@
 
 Goban for [meishengo](https://github.com/dawicorti/meishengo) in HTML5 Canvas
 
+![mei-goban preview](https://raw.githubusercontent.com/dawicorti/mei-goban/static/mei-goban.png)
+
 ## Usage
 
 ### Create and append goban
