@@ -56,7 +56,9 @@ var Goban = module.exports = function (opts) {
   this.set('whiteStoneLight', opts.whiteStoneLight || 0.4);
 
   this.forwardEvent('mousedown');
-  this.forwardEvent('mouseover');
+  this.forwardEvent('mouseenter');
+  this.forwardEvent('mouseleave');
+  this.forwardEvent('mousemove');
   this.forwardEvent('mouseup');
   this.forwardEvent('click');
 
@@ -71,7 +73,9 @@ Goban.prototype.forwardEvent = function (name) {
   this.el.addEventListener(name, function (evt) {
     var x;
     var y;
-    var intersection = {};
+    var row;
+    var col;
+    var eventName;
 
     if (evt.pageX || evt.pageY) { 
       x = evt.pageX;
@@ -84,11 +88,14 @@ Goban.prototype.forwardEvent = function (name) {
 
     x -= that.conf.curleft;
     y -= that.conf.curtop;
+    row = parseInt(Math.round((y - that.conf.border) / that.conf.intersectionWidth), 10);
+    col = parseInt(Math.round((x - that.conf.border) / that.conf.intersectionWidth), 10);
+    eventName = name + ':' + row + ':' + col;
 
-    that.trigger(name, {
-      row: parseInt(Math.round((y - that.conf.border) / that.conf.intersectionWidth), 10),
-      col: parseInt(Math.round((x - that.conf.border) / that.conf.intersectionWidth), 10)
-    })
+    if (that.lastEvent !== eventName) {
+      that.trigger(name, {row: row, col: col});
+      that.lastEvent = eventName;
+    }
   });
 
 };
