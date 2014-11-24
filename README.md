@@ -13,22 +13,22 @@ parentNode.appendChild(goban.el);
 
 ### API
 
-- goban.set(key, value)
-  - 'width' / 'height' : resize goban canvas
-  - 'size' : goban type (9/13/19)
-  - 'boardColor' : lines and hoshis color
-  - 'blackStoneColor' : color of a black stone
-  - 'whiteStoneColor' : color of a black stone
+- **goban.set**(key, value)
+  - **'width' / 'height'** : resize goban canvas
+  - **'size'** : goban type (9/13/19)
+  - **'boardColor'** : lines and hoshis color
+  - **'blackStoneColor'** : color of a black stone
+  - **'whiteStoneColor'** : color of a black stone
 
-- goban.putStone(row, col, color)
- - _row_ : stone row
- - _col_ : stone col
- - _color_ : 'black' or 'white'
+- **goban.putStone**(row, col, color)
+ - **row** : stone row
+ - **col** : stone col
+ - **color** : 'black' or 'white'
 
-- goban.removeStone(row, col)
- - _row_ : stone row
- - _col_ : stone col
+- **goban.removeStone**(row, col)
+ - **row** : stone row
+ - **col** : stone col
 
-- goban.on(event, callback)
- - _event_ : 'mousedown' / 'mouseup' / 'mousemove'
- - _callback_ : got params _row_ & _col_
+- **goban.on**(event, callback)
+ - **event** : 'mousedown' / 'mouseup' / 'mousemove'
+ - **callback** : got params _row_ & _col_
