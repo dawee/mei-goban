@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/dawicorti/mei-goban",
   "devDependencies": {
-    "browserify": "^6.3.2"
+    "browserify": "^6.3.2",
+    "jshint": "^2.5.10"
   },
   "dependencies": {
     "microevent": "^1.0.0"
