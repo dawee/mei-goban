@@ -83,6 +83,7 @@ var Goban = module.exports = function (opts) {
   this.forwardEvent('mouseup');
   this.forwardEvent('click');
 
+  this.drawEnabled  = true;
   this.draw();
 };
 
@@ -129,6 +130,9 @@ Goban.prototype.forwardEvent = function (name) {
 
 Goban.prototype.set = function (key, val) {
   if (this.conf[key] === val) return;
+
+  this.drawEnabled  = true;
+
   if (key in triggers) {
     triggers[key].apply(this, [val]);
   } else {
@@ -148,14 +152,14 @@ Goban.prototype.putStone = function (row, col, color) {
   });
 
   this.stones[row + ':' + col] = stone;
-  this.draw();
+  this.draw(true);
 };
 
 /* Remove a stone from goban and redraw */
 
 Goban.prototype.removeStone = function (row, col) {
   this.stones[row + ':' + col] = null;
-  this.draw();
+  this.draw(true);
 };
 
 /* Setup a stone property */
@@ -163,7 +167,7 @@ Goban.prototype.removeStone = function (row, col) {
 Goban.prototype.setStoneProperty = function (row, col, key, val) {
   if (!!this.stones[row + ':' + col]) {
     this.stones[row + ':' + col].set(key, val);
-    this.draw();
+    this.draw(true);
   }
 };
 
@@ -262,12 +266,16 @@ Goban.prototype.drawStones = function () {
 
 /* Draw cycle : clear, draw lines, hoshis and stones */
 
-Goban.prototype.draw = function () {
+Goban.prototype.draw = function (force) {
+  if (!force && !this.drawEnabled) return;
+
   this.calcBoardValues();
   this.ctx.clearRect(0, 0, this.conf.width, this.conf.height);
   this.drawlines();
   this.drawHoshis();
   this.drawStones();
+
+  this.drawEnabled = false;
 };
 
 },{"./stone":3,"microevent":4}],3:[function(require,module,exports){
