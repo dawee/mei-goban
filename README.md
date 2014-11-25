@@ -20,7 +20,7 @@ parentNode.appendChild(goban.el);
   - **'size'** : goban type (9/13/19)
   - **'boardColor'** : lines and hoshis color
   - **'blackStoneColor'** : color of a black stone
-  - **'whiteStoneColor'** : color of a black stone
+  - **'whiteStoneColor'** : color of a white stone
 
 - **goban.putStone**(row, col, color)
  - **row** : stone row
