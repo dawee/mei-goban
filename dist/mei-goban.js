@@ -130,6 +130,14 @@ Goban.prototype.set = function (key, val) {
   }
 };
 
+Goban.prototype.maximize = function () {
+  var area = this.el.parentNode.getBoundingClientRect();
+  var width = area.width < area.height ? area.width : area.height;
+
+  console.log(width);
+  this.set('width', width);
+};
+
 /* Put a stone on goban and redraw */
 
 Goban.prototype.putStone = function (row, col, color, opts) {
