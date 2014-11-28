@@ -132,7 +132,10 @@ Goban.prototype.set = function (key, val) {
 
 /* Put a stone on goban and redraw */
 
-Goban.prototype.putStone = function (row, col, color) {
+Goban.prototype.putStone = function (row, col, color, opts) {
+  opts = opts || {};
+
+  var force = 'force' in opts ? opts.force : true;
   var stone = new Stone({
     conf: this.conf,
     ctx: this.ctx,
@@ -142,14 +145,18 @@ Goban.prototype.putStone = function (row, col, color) {
   });
 
   this.stones[row + ':' + col] = stone;
-  this.draw(true);
+  this.draw(force);
 };
 
 /* Remove a stone from goban and redraw */
 
-Goban.prototype.removeStone = function (row, col) {
+Goban.prototype.removeStone = function (row, col, opts) {
+  opts = opts || {};
+
+  var force = 'force' in opts ? opts.force : true;
+
   this.stones[row + ':' + col] = null;
-  this.draw(true);
+  this.draw(force);
 };
 
 /* Setup a stone property */
