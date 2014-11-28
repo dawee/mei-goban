@@ -28,18 +28,6 @@ triggers.height = triggers.width = function (val) {
 
   this.el.setAttribute('width', val);
   this.el.setAttribute('height', val);
-
-  this.conf.curleft = 0;
-  this.conf.curtop = 0;
-
-  var element = this.el;
-
-  while (element) {
-      this.conf.curleft += (element.offsetLeft - element.scrollLeft + element.clientLeft);
-      this.conf.curtop += (element.offsetTop - element.scrollTop + element.clientTop);
-      element = element.offsetParent;
-  }
-
   this.draw();
 };
 
@@ -103,6 +91,8 @@ Goban.prototype.forwardEvent = function (name) {
     var row;
     var col;
     var eventName;
+    var rect = that.el.getBoundingClientRect();
+
 
     if (evt.pageX || evt.pageY) { 
       x = evt.pageX;
@@ -113,8 +103,8 @@ Goban.prototype.forwardEvent = function (name) {
       y = evt.clientY + document.body.scrollTop + document.documentElement.scrollTop; 
     } 
 
-    x -= that.conf.curleft;
-    y -= that.conf.curtop;
+    x -= rect.left;
+    y -= rect.top;
     row = parseInt(Math.round((y - that.conf.border) / that.conf.intersectionWidth), 10);
     col = parseInt(Math.round((x - that.conf.border) / that.conf.intersectionWidth), 10);
     eventName = name + ':' + row + ':' + col;
