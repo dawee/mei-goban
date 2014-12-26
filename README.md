@@ -32,5 +32,5 @@ parentNode.appendChild(goban.el);
  - **col** : stone col
 
 - **goban.on**(event, callback)
- - **event** : 'mousedown' / 'mouseup' / 'mousemove'
+ - **event** : 'intersection:mousedown' / 'intersection:mouseup' / 'intersection:mousemove'
  - **callback** : got params _row_ & _col_

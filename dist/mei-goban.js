@@ -7,7 +7,6 @@ module.exports = require('./lib/goban');
  * Module dependencies
  */
 
-var MicroEvent = require('microevent');
 var Stone = require('./stone');
 
 
@@ -49,9 +48,6 @@ var Goban = module.exports = function (opts) {
   this.conf = {};
   this.stones = {};
 
-  this.on = this.bind;
-  this.off = this.unbind;
-
   this.el = document.createElement('canvas');
   this.ctx = this.el.getContext('2d');
 
@@ -75,10 +71,11 @@ var Goban = module.exports = function (opts) {
   this.draw();
 };
 
-/* Make goban an event emitter */
+/* Bind custom event via element emitter */
 
-MicroEvent.mixin(Goban);
-
+Goban.prototype.on = function (name, callback) {
+  this.el.addEventListener(name, callback);
+};
 
 /* Forward all mouse events with row/col values */
 
@@ -88,9 +85,8 @@ Goban.prototype.forwardEvent = function (name) {
   this.el.addEventListener(name, function (evt) {
     var x;
     var y;
-    var row;
-    var col;
     var eventName;
+    var event;
     var rect = that.el.getBoundingClientRect();
 
 
@@ -105,12 +101,13 @@ Goban.prototype.forwardEvent = function (name) {
 
     x -= rect.left;
     y -= rect.top;
-    row = parseInt(Math.round((y - that.conf.border) / that.conf.intersectionWidth), 10);
-    col = parseInt(Math.round((x - that.conf.border) / that.conf.intersectionWidth), 10);
-    eventName = name + ':' + row + ':' + col;
-
+    event = new CustomEvent('intersection:' + name);
+    event.row = parseInt(Math.round((y - that.conf.border) / that.conf.intersectionWidth), 10);
+    event.col = parseInt(Math.round((x - that.conf.border) / that.conf.intersectionWidth), 10);
+    eventName = name + ':' + event.row + ':' + event.col;
+ 
     if (that.lastEvent !== eventName) {
-      that.trigger(name, {row: row, col: col});
+      that.el.dispatchEvent(event);
       that.lastEvent = eventName;
     }
   });
@@ -130,11 +127,12 @@ Goban.prototype.set = function (key, val) {
   }
 };
 
+/* Set maximum possible width to fit in parent and still be squared */
+
 Goban.prototype.maximize = function () {
   var area = this.el.parentNode.getBoundingClientRect();
   var width = area.width < area.height ? area.width : area.height;
 
-  console.log(width);
   this.set('width', width);
 };
 
@@ -192,11 +190,13 @@ Goban.prototype.calcBoardValues = function () {
 Goban.prototype.drawHorizontalLine = function (index) {
   var y = this.conf.border + this.conf.intersectionWidth * index;
 
+  this.ctx.save();
   this.ctx.beginPath();
   this.ctx.moveTo(this.conf.border, y);
   this.ctx.lineTo(this.conf.boardWidth + this.conf.border, y);
   this.ctx.strokeStyle = this.conf.boardColor;
   this.ctx.stroke();
+  this.ctx.restore();
 };
 
 /* Draw one vertical line at index [0...18] */
@@ -204,11 +204,13 @@ Goban.prototype.drawHorizontalLine = function (index) {
 Goban.prototype.drawVerticalLine = function (index) {
   var x = this.conf.border + this.conf.intersectionWidth * index;
 
+  this.ctx.save();
   this.ctx.beginPath();
   this.ctx.moveTo(x, this.conf.border);
   this.ctx.lineTo(x, this.conf.boardWidth + this.conf.border);
   this.ctx.strokeStyle = this.conf.boardColor;
   this.ctx.stroke();
+  this.ctx.restore();
 };
 
 /* Draw a hoshi (star) */
@@ -283,7 +285,7 @@ Goban.prototype.draw = function (force) {
   this.drawEnabled = false;
 };
 
-},{"./stone":3,"microevent":4}],3:[function(require,module,exports){
+},{"./stone":3}],3:[function(require,module,exports){
 'use strict';
 
 /*
@@ -386,58 +388,6 @@ Stone.prototype.draw = function () {
   this.drawLight();
   this.drawLightLine();
 };
-
-},{}],4:[function(require,module,exports){
-/**
- * MicroEvent - to make any js object an event emitter (server or browser)
- * 
- * - pure javascript - server compatible, browser compatible
- * - dont rely on the browser doms
- * - super simple - you get it immediatly, no mistery, no magic involved
- *
- * - create a MicroEventDebug with goodies to debug
- *   - make it safer to use
-*/
-
-var MicroEvent	= function(){}
-MicroEvent.prototype	= {
-	bind	: function(event, fct){
-		this._events = this._events || {};
-		this._events[event] = this._events[event]	|| [];
-		this._events[event].push(fct);
-	},
-	unbind	: function(event, fct){
-		this._events = this._events || {};
-		if( event in this._events === false  )	return;
-		this._events[event].splice(this._events[event].indexOf(fct), 1);
-	},
-	trigger	: function(event /* , args... */){
-		this._events = this._events || {};
-		if( event in this._events === false  )	return;
-		for(var i = 0; i < this._events[event].length; i++){
-			this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1))
-		}
-	}
-};
-
-/**
- * mixin will delegate all MicroEvent.js function in the destination object
- *
- * - require('MicroEvent').mixin(Foobar) will make Foobar able to use MicroEvent
- *
- * @param {Object} the object which will support MicroEvent
-*/
-MicroEvent.mixin	= function(destObject){
-	var props	= ['bind', 'unbind', 'trigger'];
-	for(var i = 0; i < props.length; i ++){
-		destObject.prototype[props[i]]	= MicroEvent.prototype[props[i]];
-	}
-}
-
-// export in common js
-if( typeof module !== "undefined" && ('exports' in module)){
-	module.exports	= MicroEvent
-}
 
 },{}]},{},[1])(1)
 });
