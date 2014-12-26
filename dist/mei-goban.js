@@ -133,21 +133,21 @@ Goban.prototype.set = function (key, val) {
 Goban.prototype.setFocus = function (row, col) {
   var that = this;
 
-  this.focus = {row: row, col: col, blinking: true};  
+  this.conf.focus = {row: row, col: col, blinking: true};  
   this.draw(true);
 
   setTimeout(function () {
-    that.focus.blinking = false;
+    that.conf.focus.blinking = false;
     that.draw(true);
   }, this.conf.focusTime);
 
   setTimeout(function () {
-    that.focus.blinking = true;
+    that.conf.focus.blinking = true;
     that.draw(true);
   }, this.conf.focusTime * 2);
 
   setTimeout(function () {
-    that.focus = null;
+    that.conf.focus = null;
     that.draw(true);
   }, this.conf.focusTime * 3);
 };
@@ -220,12 +220,12 @@ Goban.prototype.drawHorizontalLine = function (index) {
   this.ctx.moveTo(this.conf.border, y);
   this.ctx.lineTo(this.conf.boardWidth + this.conf.border, y);
 
-  if (!!this.focus && this.focus.row === index && this.focus.blinking) {
+  if (!!this.conf.focus && this.conf.focus.row === index && this.conf.focus.blinking) {
     this.ctx.strokeStyle = this.conf.focusColor;
   } else {
     this.ctx.strokeStyle = this.conf.boardColor;
   
-    if (!!this.focus) this.ctx.globalAlpha = this.conf.focusContrast;
+    if (!!this.conf.focus) this.ctx.globalAlpha = this.conf.focusContrast;
   }
 
   this.ctx.stroke();
@@ -242,12 +242,12 @@ Goban.prototype.drawVerticalLine = function (index) {
   this.ctx.moveTo(x, this.conf.border);
   this.ctx.lineTo(x, this.conf.boardWidth + this.conf.border);
   
-  if (!!this.focus && this.focus.col === index && this.focus.blinking) {
+  if (!!this.conf.focus && this.conf.focus.col === index && this.conf.focus.blinking) {
     this.ctx.strokeStyle = this.conf.focusColor;
   } else  {
     this.ctx.strokeStyle = this.conf.boardColor;
 
-    if (!!this.focus) this.ctx.globalAlpha = this.conf.focusContrast;
+    if (!!this.conf.focus) this.ctx.globalAlpha = this.conf.focusContrast;
   }
 
   this.ctx.stroke();
@@ -353,7 +353,7 @@ Stone.prototype.set = function (key, val) {
 Stone.prototype.drawBase = function () {
   this.ctx.save();
   this.ctx.beginPath();
-  this.ctx.globalAlpha = this.opacity;
+  this.ctx.globalAlpha = this.computedOpacity;
   this.ctx.shadowColor   = '#000';
   this.ctx.shadowOffsetX = 2;
   this.ctx.shadowOffsetY = 2;
@@ -370,7 +370,7 @@ Stone.prototype.drawBase = function () {
 Stone.prototype.drawShadow = function () {
   this.ctx.save();
   this.ctx.fillStyle = '#000';
-  this.ctx.globalAlpha = 0.3 * this.opacity;
+  this.ctx.globalAlpha = 0.3 * this.computedOpacity;
   this.ctx.beginPath();
   this.ctx.arc(this.x, this.y, this.conf.stoneRay, 0, Math.PI * 2, true); 
   this.ctx.closePath();
@@ -386,7 +386,7 @@ Stone.prototype.drawLight = function () {
 
   this.ctx.save();
   this.ctx.fillStyle = '#fff';
-  this.ctx.globalAlpha = this.conf[this.color + 'StoneLight'] * this.opacity;
+  this.ctx.globalAlpha = this.conf[this.color + 'StoneLight'] * this.computedOpacity;
   this.ctx.beginPath();
 
   this.ctx.arc(this.x, this.y, this.conf.stoneRay, Math.PI - 1.072, 2 * Math.PI - 0.499);
@@ -405,7 +405,7 @@ Stone.prototype.drawLightLine = function () {
 
   this.ctx.save();
   this.ctx.fillStyle = '#fff';
-  this.ctx.globalAlpha = this.conf[this.color + 'StoneLight'] * this.opacity;
+  this.ctx.globalAlpha = this.conf[this.color + 'StoneLight'] * this.computedOpacity;
   this.ctx.beginPath();
 
   this.ctx.arc(this.x, this.y, this.conf.stoneRay, Math.PI - 1.072, 2 * Math.PI - 0.499);
@@ -423,6 +423,12 @@ Stone.prototype.draw = function () {
 
   this.x = this.conf.border + this.conf.intersectionWidth * this.col;
   this.y = this.conf.border + this.conf.intersectionWidth * this.row;
+
+  if (!!this.conf.focus && (this.conf.focus.row !== this.row || this.conf.focus.col !== this.col)) {
+    this.computedOpacity = this.conf.focusContrast;
+  } else {
+    this.computedOpacity = this.opacity;
+  }
 
   this.drawBase();
   this.drawShadow();
