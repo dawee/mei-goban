@@ -7,6 +7,7 @@ module.exports = require('./lib/goban');
  * Module dependencies
  */
 
+var debounce = require('debounce');
 var Stone = require('./stone');
 
 
@@ -55,18 +56,20 @@ var Goban = module.exports = function (opts) {
   this.set('height', opts.height || 500);
   this.set('size', opts.size || 19);
   this.set('boardColor', opts.boardColor || '#63605e');
+  this.set('focusColor', opts.focusColor || '#d34656');
+  this.set('focusContrast', opts.focusColor || 0.3);
+  this.set('focusTime', opts.focusTime || 200);
   this.set('blackStoneColor', opts.blackStoneColor || '#27160f');
   this.set('whiteStoneColor', opts.whiteStoneColor || '#f9f2ef');
   this.set('blackStoneLight', opts.blackStoneLight || 0.1);
   this.set('whiteStoneLight', opts.whiteStoneLight || 0.4);
 
   this.forwardEvent('mousedown');
-  this.forwardEvent('mouseenter');
-  this.forwardEvent('mouseleave');
   this.forwardEvent('mousemove');
   this.forwardEvent('mouseup');
   this.forwardEvent('click');
 
+  this.setFocus = debounce(this.setFocus, 1000, true);
   this.drawEnabled  = true;
   this.draw();
 };
@@ -125,6 +128,28 @@ Goban.prototype.set = function (key, val) {
   } else {
     this.conf[key] = val;
   }
+};
+
+Goban.prototype.setFocus = function (row, col) {
+  var that = this;
+
+  this.focus = {row: row, col: col, blinking: true};  
+  this.draw(true);
+
+  setTimeout(function () {
+    that.focus.blinking = false;
+    that.draw(true);
+  }, this.conf.focusTime);
+
+  setTimeout(function () {
+    that.focus.blinking = true;
+    that.draw(true);
+  }, this.conf.focusTime * 2);
+
+  setTimeout(function () {
+    that.focus = null;
+    that.draw(true);
+  }, this.conf.focusTime * 3);
 };
 
 /* Set maximum possible width to fit in parent and still be squared */
@@ -194,7 +219,15 @@ Goban.prototype.drawHorizontalLine = function (index) {
   this.ctx.beginPath();
   this.ctx.moveTo(this.conf.border, y);
   this.ctx.lineTo(this.conf.boardWidth + this.conf.border, y);
-  this.ctx.strokeStyle = this.conf.boardColor;
+
+  if (!!this.focus && this.focus.row === index && this.focus.blinking) {
+    this.ctx.strokeStyle = this.conf.focusColor;
+  } else {
+    this.ctx.strokeStyle = this.conf.boardColor;
+  
+    if (!!this.focus) this.ctx.globalAlpha = this.conf.focusContrast;
+  }
+
   this.ctx.stroke();
   this.ctx.restore();
 };
@@ -208,7 +241,15 @@ Goban.prototype.drawVerticalLine = function (index) {
   this.ctx.beginPath();
   this.ctx.moveTo(x, this.conf.border);
   this.ctx.lineTo(x, this.conf.boardWidth + this.conf.border);
-  this.ctx.strokeStyle = this.conf.boardColor;
+  
+  if (!!this.focus && this.focus.col === index && this.focus.blinking) {
+    this.ctx.strokeStyle = this.conf.focusColor;
+  } else  {
+    this.ctx.strokeStyle = this.conf.boardColor;
+
+    if (!!this.focus) this.ctx.globalAlpha = this.conf.focusContrast;
+  }
+
   this.ctx.stroke();
   this.ctx.restore();
 };
@@ -285,7 +326,7 @@ Goban.prototype.draw = function (force) {
   this.drawEnabled = false;
 };
 
-},{"./stone":3}],3:[function(require,module,exports){
+},{"./stone":3,"debounce":4}],3:[function(require,module,exports){
 'use strict';
 
 /*
@@ -388,6 +429,68 @@ Stone.prototype.draw = function () {
   this.drawLight();
   this.drawLightLine();
 };
+
+},{}],4:[function(require,module,exports){
+
+/**
+ * Module dependencies.
+ */
+
+var now = require('date-now');
+
+/**
+ * Returns a function, that, as long as it continues to be invoked, will not
+ * be triggered. The function will be called after it stops being called for
+ * N milliseconds. If `immediate` is passed, trigger the function on the
+ * leading edge, instead of the trailing.
+ *
+ * @source underscore.js
+ * @see http://unscriptable.com/2009/03/20/debouncing-javascript-methods/
+ * @param {Function} function to wrap
+ * @param {Number} timeout in ms (`100`)
+ * @param {Boolean} whether to execute at the beginning (`false`)
+ * @api public
+ */
+
+module.exports = function debounce(func, wait, immediate){
+  var timeout, args, context, timestamp, result;
+  if (null == wait) wait = 100;
+
+  function later() {
+    var last = now() - timestamp;
+
+    if (last < wait && last > 0) {
+      timeout = setTimeout(later, wait - last);
+    } else {
+      timeout = null;
+      if (!immediate) {
+        result = func.apply(context, args);
+        if (!timeout) context = args = null;
+      }
+    }
+  };
+
+  return function debounced() {
+    context = this;
+    args = arguments;
+    timestamp = now();
+    var callNow = immediate && !timeout;
+    if (!timeout) timeout = setTimeout(later, wait);
+    if (callNow) {
+      result = func.apply(context, args);
+      context = args = null;
+    }
+
+    return result;
+  };
+};
+
+},{"date-now":5}],5:[function(require,module,exports){
+module.exports = Date.now || now
+
+function now() {
+    return new Date().getTime()
+}
 
 },{}]},{},[1])(1)
 });

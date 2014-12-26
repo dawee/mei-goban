@@ -23,5 +23,7 @@
     "browserify": "^6.3.2",
     "jshint": "^2.5.10"
   },
-  "dependencies": {}
+  "dependencies": {
+    "debounce": "^1.0.0"
+  }
 }
