@@ -7,7 +7,6 @@ module.exports = require('./lib/goban');
  * Module dependencies
  */
 
-var debounce = require('debounce');
 var Stone = require('./stone');
 
 
@@ -69,7 +68,6 @@ var Goban = module.exports = function (opts) {
   this.forwardEvent('mouseup');
   this.forwardEvent('click');
 
-  this.setFocus = debounce(this.setFocus, 1000, true);
   this.drawEnabled  = true;
   this.draw();
 };
@@ -133,13 +131,10 @@ Goban.prototype.set = function (key, val) {
 Goban.prototype.setFocus = function (row, col) {
   var that = this;
 
-  this.conf.focus = {row: row, col: col, blinking: true};  
-  this.draw(true);
+  if (!!this.conf.focus) return;
 
-  setTimeout(function () {
-    that.conf.focus.blinking = false;
-    that.draw(true);
-  }, this.conf.focusTime);
+  this.conf.focus = {row: row, col: col, blinking: false};  
+  this.draw(true);
 
   setTimeout(function () {
     that.conf.focus.blinking = true;
@@ -147,9 +142,19 @@ Goban.prototype.setFocus = function (row, col) {
   }, this.conf.focusTime * 2);
 
   setTimeout(function () {
-    that.conf.focus = null;
+    that.conf.focus.blinking = false;
     that.draw(true);
   }, this.conf.focusTime * 3);
+
+  setTimeout(function () {
+    that.conf.focus.blinking = true;
+    that.draw(true);
+  }, this.conf.focusTime * 4);
+
+  setTimeout(function () {
+    that.conf.focus = null;
+    that.draw(true);
+  }, this.conf.focusTime * 6);
 };
 
 /* Set maximum possible width to fit in parent and still be squared */
@@ -326,7 +331,7 @@ Goban.prototype.draw = function (force) {
   this.drawEnabled = false;
 };
 
-},{"./stone":3,"debounce":4}],3:[function(require,module,exports){
+},{"./stone":3}],3:[function(require,module,exports){
 'use strict';
 
 /*
@@ -435,68 +440,6 @@ Stone.prototype.draw = function () {
   this.drawLight();
   this.drawLightLine();
 };
-
-},{}],4:[function(require,module,exports){
-
-/**
- * Module dependencies.
- */
-
-var now = require('date-now');
-
-/**
- * Returns a function, that, as long as it continues to be invoked, will not
- * be triggered. The function will be called after it stops being called for
- * N milliseconds. If `immediate` is passed, trigger the function on the
- * leading edge, instead of the trailing.
- *
- * @source underscore.js
- * @see http://unscriptable.com/2009/03/20/debouncing-javascript-methods/
- * @param {Function} function to wrap
- * @param {Number} timeout in ms (`100`)
- * @param {Boolean} whether to execute at the beginning (`false`)
- * @api public
- */
-
-module.exports = function debounce(func, wait, immediate){
-  var timeout, args, context, timestamp, result;
-  if (null == wait) wait = 100;
-
-  function later() {
-    var last = now() - timestamp;
-
-    if (last < wait && last > 0) {
-      timeout = setTimeout(later, wait - last);
-    } else {
-      timeout = null;
-      if (!immediate) {
-        result = func.apply(context, args);
-        if (!timeout) context = args = null;
-      }
-    }
-  };
-
-  return function debounced() {
-    context = this;
-    args = arguments;
-    timestamp = now();
-    var callNow = immediate && !timeout;
-    if (!timeout) timeout = setTimeout(later, wait);
-    if (callNow) {
-      result = func.apply(context, args);
-      context = args = null;
-    }
-
-    return result;
-  };
-};
-
-},{"date-now":5}],5:[function(require,module,exports){
-module.exports = Date.now || now
-
-function now() {
-    return new Date().getTime()
-}
 
 },{}]},{},[1])(1)
 });
