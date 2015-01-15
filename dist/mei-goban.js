@@ -39,6 +39,13 @@ triggers.size = function (val) {
   this.draw();
 };
 
+/* if reversed === true, goban is upside down (opponent point of view) */
+
+triggers.reversed = function (val) {
+  this.conf.reversed = !!val;
+  this.draw();
+};
+
 /*
  * Goban constructor
  */
@@ -62,6 +69,7 @@ var Goban = module.exports = function (opts) {
   this.set('whiteStoneColor', opts.whiteStoneColor || '#f9f2ef');
   this.set('blackStoneLight', opts.blackStoneLight || 0.1);
   this.set('whiteStoneLight', opts.whiteStoneLight || 0.4);
+  this.set('reversed', opts.reversed || false);
 
   this.forwardEvent('mousedown');
   this.forwardEvent('mousemove');
@@ -424,10 +432,12 @@ Stone.prototype.drawLightLine = function () {
 /* Draw cycle : base, shadow, light, light line */
 
 Stone.prototype.draw = function () {
-  this.conf.stoneRay = parseInt(this.conf.intersectionWidth * 0.98 / 2, 10);
+  var virtualCol = this.conf.reversed ? this.conf.size - 1 - this.col : this.col;
+  var virtualRow = this.conf.reversed ? this.conf.size - 1 - this.row : this.row;
 
-  this.x = this.conf.border + this.conf.intersectionWidth * this.col;
-  this.y = this.conf.border + this.conf.intersectionWidth * this.row;
+  this.conf.stoneRay = parseInt(this.conf.intersectionWidth * 0.98 / 2, 10);
+  this.x = this.conf.border + this.conf.intersectionWidth * virtualCol;
+  this.y = this.conf.border + this.conf.intersectionWidth * virtualRow;
 
   if (!!this.conf.focus && (this.conf.focus.row !== this.row || this.conf.focus.col !== this.col)) {
     this.computedOpacity = this.conf.focusContrast;
