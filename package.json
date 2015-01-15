@@ -1,6 +1,6 @@
 {
   "name": "mei-goban",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Goban for meishengo in HTML5 Canvas",
   "main": "index.js",
   "repository": {
@@ -23,5 +23,7 @@
     "browserify": "^6.3.2",
     "jshint": "^2.5.10"
   },
-  "dependencies": {}
+  "dependencies": {
+    "mei-goban": "^0.1.8"
+  }
 }
