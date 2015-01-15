@@ -113,6 +113,9 @@ Goban.prototype.forwardEvent = function (name) {
     event = new CustomEvent('intersection:' + name);
     event.row = parseInt(Math.round((y - that.conf.border) / that.conf.intersectionWidth), 10);
     event.col = parseInt(Math.round((x - that.conf.border) / that.conf.intersectionWidth), 10);
+    event.row = that.conf.reversed ? that.conf.size - 1 - event.row : event.row;
+    event.col = that.conf.reversed ? that.conf.size - 1 - event.col : event.col;
+
     eventName = name + ':' + event.row + ':' + event.col;
  
     if (that.lastEvent !== eventName) {
